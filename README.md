@@ -1,4 +1,4 @@
-# MCP TypeScript Starter
+# MCP TypeScript Server Starter
 
 A starter project for building Model Context Protocol (MCP) servers in TypeScript. This project provides a simple echo server implementation that demonstrates the core features of MCP.
 
@@ -21,8 +21,8 @@ A starter project for building Model Context Protocol (MCP) servers in TypeScrip
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd mcp-server-starter
+git clone https://github.com/ralf-boltshauser/mcp-typescript-server-starter.git
+cd mcp-typescript-server-starter
 
 # Install dependencies
 pnpm install
