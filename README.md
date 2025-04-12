@@ -121,6 +121,48 @@ pnpm build
 
 This will create an executable in the `dist` directory.
 
+## Configuring in Cursor
+
+To use this server in Cursor, add the following configuration to your Cursor settings:
+
+```json
+{
+  "mcpServers": {
+    "Echo Server": {
+      "command": "node",
+      "args": [
+        "/path/to/echo-server/dist/index.cjs"
+      ]
+    }
+  }
+}
+```
+
+Make sure to:
+1. Run `pnpm build` first to create the executable
+2. Replace `/path/to/echo-server` with the actual path to your project directory
+
+## Configuring in Claude Desktop
+
+To use this server in Claude Desktop, run the following command:
+
+```bash
+echo '{
+  "mcpServers": {
+    "echo-server": {
+      "command": "node",
+      "args": ["'$PWD'/dist/index.cjs"]
+    }
+  }
+}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
+
+⚠️ **Important Note**: This configuration will overwrite all existing MCP tools in Claude Desktop. Use with caution.
+
+To verify the setup:
+1. Restart Claude Desktop
+2. Check if the hammer tool (🛠️) appears in the chat window, showing the available tools
+
 ## License
 
 [MIT](LICENSE) 
