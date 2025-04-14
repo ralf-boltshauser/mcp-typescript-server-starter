@@ -29,6 +29,24 @@ pnpm install
 
 ## Usage Modes
 
+This server supports two main communication modes:
+
+1. **STDIO Mode**
+   - Ideal for local development and basic testing
+   - Direct process communication
+   - Used by most MCP clients by default
+   - Perfect for running servers locally
+   - Simple to set up and use
+
+2. **SSE Mode**
+   - Better for production deployments
+   - HTTP/SSE communication
+   - Can be converted to STDIO using npm packages (covered later)
+   - Enables remote access to your server
+   - More scalable and production-ready
+
+Choose STDIO for local development and SSE when you need to deploy your server for remote access.
+
 ### STDIO Mode (Direct Process Communication)
 
 This mode is ideal for direct integration with tools like Cursor or Claude Desktop.
@@ -158,6 +176,7 @@ server.prompt("echo", { message: z.string() }, ({ message }) => ({
 ## Implementation Recommendations
 
 ### Debug Messages
+
 Debug messages can be sent using the `server.server.sendLoggingMessage` method to provide visibility into server operations.
 
 #### Basic Usage
