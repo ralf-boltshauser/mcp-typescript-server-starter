@@ -4,6 +4,7 @@ import {
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import express, { Request, Response } from "express";
+import path from "path";
 import { z } from "zod";
 
 const server = new McpServer({
@@ -84,7 +85,7 @@ app.get("/test", async (_: Request, res: Response) => {
 });
 
 app.get("/", async (_: Request, res: Response) => {
-  res.send("Hello, world!");
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 app.post("/messages", async (req: Request, res: Response) => {
