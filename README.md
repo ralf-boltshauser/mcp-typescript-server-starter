@@ -121,6 +121,18 @@ pnpm build
 
 This will create an executable in the `dist` directory.
 
+## Docker Deployment
+
+You can run the server locally using Docker:
+
+```bash
+docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d
+```
+
+The server will be available at:
+- MCP Inspector: http://localhost:3001
+- Server port: 3001
+
 ## Configuring in Cursor
 
 To use this server in Cursor, add the following configuration to your Cursor settings:
