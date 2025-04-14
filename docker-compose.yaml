@@ -9,18 +9,3 @@ services:
       NODE_ENV: production
     restart: unless-stopped
     command: node dist/index.cjs
-    labels:
-    - traefik.enable=true
-
-    # Disable compression
-    - traefik.http.middlewares.no-compression.compress=false
-
-    # Your own custom router (static name, works across deploys)
-    - traefik.http.routers.sse-router.rule=Host(`echo.ralfbuilds.com`) && PathPrefix(`/sse`)
-    - traefik.http.routers.sse-router.entryPoints=https
-    - traefik.http.routers.sse-router.tls=true
-    - traefik.http.routers.sse-router.service=sse-service
-    - traefik.http.routers.sse-router.middlewares=no-compression@docker
-
-    # Your own service
-    - traefik.http.services.sse-service.loadbalancer.server.port=3001
