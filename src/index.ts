@@ -2,7 +2,8 @@ import {
   McpServer,
   ResourceTemplate,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import express, { Request, Response } from "express";
 import { z } from "zod";
 
 const server = new McpServer({
@@ -54,9 +55,46 @@ server.prompt("echo", { message: z.string() }, ({ message }) => ({
   ],
 }));
 
-async function main() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-}
+// STDIO
+// async function main() {
+//   const transport = new StdioServerTransport();
+//   await server.connect(transport);
+// }
 
-main();
+// main();
+
+// SSE
+const app = express();
+
+// to support multiple simultaneous connections we have a lookup object from
+// sessionId to transport
+const transports: { [sessionId: string]: SSEServerTransport } = {};
+
+app.get("/sse", async (_: Request, res: Response) => {
+  const transport = new SSEServerTransport("/messages", res);
+  transports[transport.sessionId] = transport;
+  res.on("close", () => {
+    delete transports[transport.sessionId];
+  });
+  await server.connect(transport);
+});
+
+app.get("/test", async (_: Request, res: Response) => {
+  res.send("Test route works!");
+});
+
+app.get("/", async (_: Request, res: Response) => {
+  res.send("Hello, world!");
+});
+
+app.post("/messages", async (req: Request, res: Response) => {
+  const sessionId = req.query.sessionId as string;
+  const transport = transports[sessionId];
+  if (transport) {
+    await transport.handlePostMessage(req, res);
+  } else {
+    res.status(400).send("No transport found for sessionId");
+  }
+});
+
+app.listen(3001, "0.0.0.0");
