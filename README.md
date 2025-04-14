@@ -9,15 +9,14 @@ A starter project for building Model Context Protocol (MCP) servers in TypeScrip
 - TypeScript support
 - Development server with hot reloading
 - Built-in inspector for testing and debugging
+- Support for both STDIO and SSE communication modes
 
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Node.js (v16 or later)
 - pnpm (recommended) or npm
 
-### Installation
+## Installation
 
 ```bash
 # Clone the repository
@@ -28,23 +27,88 @@ cd mcp-typescript-server-starter
 pnpm install
 ```
 
-### Development
+## Usage Modes
 
-Start the development server with hot reloading:
+### STDIO Mode (Direct Process Communication)
 
-```bash
-pnpm dev
-```
+This mode is ideal for direct integration with tools like Cursor or Claude Desktop.
 
-This will:
-1. Start the TypeScript compiler in watch mode
-2. Launch the MCP inspector
+1. **Configure the Server**
+   - In `src/index.ts`:
+     - Comment out the Express/SSE code at (the bottom)
+     - Uncomment the STDIO code (above it)
 
-The inspector will be available at: http://127.0.0.1:6274
+2. **Build and Run**
+   ```bash
+   pnpm build
+   node dist/index.cjs
+   ```
+  or 
+  ```bash
+  pnpm dev # starts the server and the inspector
+  ```
+
+3. **Integration with Claude Desktop**
+   ```bash
+   pnpm add-claude
+   ```
+   ⚠️ **Note**: This will overwrite your existing Claude Desktop configuration.
+
+   This way of configuring claude desktop is standard. The json that is generated can also be used in cursor and so on!
+
+4. **Manual Integration**
+   For other tools, use the command:
+   ```bash
+   node /path/to/your/project/dist/index.cjs
+   ```
+
+   or 
+   ```bash
+   pnpm cmd # this gives you the node .../dist/index.cjs command directly with pwd
+   ```
+
+### SSE Mode (HTTP/SSE Communication)
+
+This mode is ideal for web-based tools and remote deployments.
+
+1. **Configure the Server**
+   - In `src/index.ts`:
+     - Keep the Express/SSE code enabled (at the bottom)
+     - Comment out the STDIO code (above it)
+
+2. **Local Development**
+   ```bash
+   pnpm dev
+   ```
+   The server will be available at:
+   - Main endpoint: http://127.0.0.1:3001
+   - SSE endpoint: http://127.0.0.1:3001/sse
+   - Test endpoint: http://127.0.0.1:3001/test
+   - Inspector: http://127.0.0.1:6274
+
+3. **Local Docker Testing**
+  The docker compose override is needed to actually expose the ports. When deploying to stuff like coolify you don't want it because traefik will handle it.
+   ```bash
+   docker compose -f docker-compose.yaml -f docker-compose.local.yaml up
+   ```
+
+4. **Production Deployment (e.g., Coolify)**
+   - Deploy the server to your preferred platform
+   - **Important**: In Coolify's advanced settings:
+     - Disable GZIP compression (this kills the SSE stream)
+     - Ensure port 3001 is properly exposed -> when setting a domain do it like this: https://your-domain.com:3001 this tells traefik to bind to port 3001.
+     - Configure the server to listen on all interfaces (0.0.0.0) (already done)
+
+5. **Using the Remote Server**
+   Once deployed, you can connect to the server using:
+   ```bash
+   npx -y mcp-remote https://your-domain.com/sse
+   ```
+   You can paste this as command and replace the "node .../dist/index.cjs" with this.
 
 ## Project Structure
 
-- `src/index.ts` - Main server implementation using the high-level MCP API
+- `src/index.ts` - Main server implementation
 - `src/low-level-index.ts` - Alternative implementation using the low-level API
 - `dist/` - Compiled output directory
 
@@ -91,89 +155,77 @@ server.prompt("echo", { message: z.string() }, ({ message }) => ({
 }));
 ```
 
-## Implementation Options
+## Implementation Recommendations
 
-This project provides two implementation approaches:
+### Debug Messages
+Debug messages can be sent using the `server.server.sendLoggingMessage` method to provide visibility into server operations.
 
-1. **High-level API** (`src/index.ts`)
-   - Easier to use
-   - More concise code
-   - Good for most use cases
-
-2. **Low-level API** (`src/low-level-index.ts`)
-   - More control over implementation
-   - More verbose but flexible
-   - Better for advanced use cases
-
-## Using the Inspector
-
-The MCP inspector (available at http://127.0.0.1:6274) allows you to:
-- Test tools
-- Browse resources
-- View available prompts
-- Monitor server activity
-
-## Building for Production
-
-```bash
-pnpm build
+#### Basic Usage
+```typescript
+server.server.sendLoggingMessage({
+  level: "info",
+  data: "Starting server...",
+});
 ```
 
-This will create an executable in the `dist` directory.
+This allows you to:
+- Track server operations in real-time
+- Debug issues during development
+- Monitor server state in production
 
-## Docker Deployment
+You can see them in the inspector on the bottom right!
 
-You can run the server locally using Docker:
+### Environment Variables
 
-```bash
-docker compose -f docker-compose.yaml -f docker-compose.local.yaml up -d
-```
+For server-side environment variables (developer-provided, not user-specific):
 
-The server will be available at:
-- MCP Inspector: http://localhost:3001
-- Server port: 3001
+1. **Using Docker Compose**
+   ```yaml
+   # docker-compose.yaml
+   services:
+     mmcp-server:
+       environment:
+         - API_KEY=${API_KEY}
+         - DATABASE_URL=${DATABASE_URL}
+   ```
+   This allows you to:
+   - Set variables in your shell: `export API_KEY=your-key`
+   - Use a `.env` file that Docker Compose will automatically load
 
-## Configuring in Cursor
+2. **Accessing in Code**
+   ```typescript
+   const apiKey = process.env.API_KEY;
+   const dbUrl = process.env.DATABASE_URL;
+   ```
 
-To use this server in Cursor, add the following configuration to your Cursor settings:
+3. **Local Development**
+   - Create a `.env` file in your project root:
+     ```
+     API_KEY=sk-123
+     ```
+   - Add `.env` to `.gitignore` to keep secrets secure
+   - Run the development server with environment variables:
+     ```sh
+     pnpm dev
+     ```
 
-```json
-{
-  "mcpServers": {
-    "Echo Server": {
-      "command": "node",
-      "args": [
-        "/path/to/echo-server/dist/index.cjs"
-      ]
-    }
-  }
-}
-```
+4. **Production Deployment**
+   - Set environment variables in your deployment platform (e.g., Coolify)
+   - Never commit sensitive values to version control
 
-Make sure to:
-1. Run `pnpm build` first to create the executable
-2. Replace `/path/to/echo-server` with the actual path to your project directory
+### Best Practices
 
-## Configuring in Claude Desktop
+1. **Error Handling**
+   - Always implement proper error handling for environment variables
+   - Provide meaningful error messages for missing required variables
 
-To use this server in Claude Desktop, run the following command:
+2. **Type Safety**
+   - Use TypeScript to define environment variable types
+   - Consider using a validation library like `zod` for runtime checks
 
-```bash
-echo '{
-  "mcpServers": {
-    "echo-server": {
-      "command": "node",
-      "args": ["'$PWD'/dist/index.cjs"]
-    }
-  }
-}' > ~/Library/Application\ Support/Claude/claude_desktop_config.json
-```
-
-⚠️ **Important Note**: This configuration will overwrite all existing MCP tools in Claude Desktop. Use with caution.
-
-To verify the setup:
-1. Restart Claude Desktop
-2. Check if the hammer tool (🛠️) appears in the chat window, showing the available tools
+3. **Security**
+   - Never expose sensitive environment variables to the client
+   - Use different sets of variables for development and production
 
 ## License
 
