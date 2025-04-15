@@ -2,6 +2,72 @@
 
 A starter project for building Model Context Protocol (MCP) servers in TypeScript. This project provides a simple echo server implementation that demonstrates the core features of MCP.
 
+## Quick Start Checklists
+
+### 📥 Installation
+
+- [ ] Clone the repository:
+  ```bash
+  git clone https://github.com/ralf-boltshauser/mcp-typescript-server-starter.git
+  cd mcp-typescript-server-starter
+  ```
+- [ ] Install dependencies:
+  ```bash
+  pnpm install
+  ```
+
+### 🛠️ Local Development
+
+- [ ] Start the development server:
+  ```bash
+  pnpm dev
+  ```
+- [ ] Access the inspector at http://localhost:6274
+- [ ] Test your MCP server:
+  1. Click on "Connect" in the inspector
+  2. Navigate to "Tools" section
+  3. Click "List Tools"
+  4. Select "echo" tool
+  5. Write a test message
+  6. Click "Submit"
+- [ ] Open `src/index.ts` to add your own:
+  - Tools (functions your AI can call)
+  - Resources (data your AI can access)
+  - Prompts (templates for AI interactions)
+- [ ] Update `src/index.html` with your server's description and documentation
+
+### 🚀 Deployment (Coolify Example)
+
+- [ ] Set up on Coolify:
+  1. Connect your repository
+  2. In advanced settings:
+     - [ ] Disable GZIP compression (required for SSE)
+  3. Configure domain:
+     - [ ] Add your domain as: `https://subdomain.yourdomain.com:3001`
+       - The `:3001` is crucial - it tells traefik to bind to your internal port
+- [ ] Verify deployment:
+  1. Visit `subdomain.yourdomain.com` to see your index.html
+  2. Test SSE connection at `https://subdomain.yourdomain.com/sse`
+
+### 🔌 Connecting to Your Deployed Server
+
+Use this command to connect to your server:
+```bash
+npx -y mcp-remote https://subdomain.yourdomain.com/sse
+```
+
+Example configuration for Cursor/Claude Desktop:
+```json
+{
+  "mcpServers": {
+    "your-server-name": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://subdomain.yourdomain.com/sse"]
+    },
+  }
+}
+```
+
 ## Features
 
 - Simple echo server implementation
@@ -15,17 +81,6 @@ A starter project for building Model Context Protocol (MCP) servers in TypeScrip
 
 - Node.js (v16 or later)
 - pnpm (recommended) or npm
-
-## Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/ralf-boltshauser/mcp-typescript-server-starter.git
-cd mcp-typescript-server-starter
-
-# Install dependencies
-pnpm install
-```
 
 ## Usage Modes
 
@@ -111,6 +166,7 @@ This mode is ideal for web-based tools and remote deployments.
    ```
 
 4. **Production Deployment (e.g., Coolify)**
+   - Ask your IDE to update src/index.html to match your servers description.
    - Deploy the server to your preferred platform
    - **Important**: In Coolify's advanced settings:
      - Disable GZIP compression (this kills the SSE stream)
