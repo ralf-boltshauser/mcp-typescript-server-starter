@@ -40,7 +40,7 @@ RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 
 # Copy index.html
-COPY src/index.html ./
+COPY src/index.html ./dist
 
 # Set environment variables
 ENV NODE_ENV=production
