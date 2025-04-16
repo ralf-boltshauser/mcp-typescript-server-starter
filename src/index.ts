@@ -7,6 +7,9 @@ import express, { Request, Response } from "express";
 import path from "path";
 import { z } from "zod";
 
+// Use process.cwd() instead of import.meta.url for path resolution
+const PROJECT_ROOT = process.cwd();
+
 const server = new McpServer({
   name: "Echo",
   version: "1.0.0",
@@ -67,6 +70,9 @@ server.prompt("echo", { message: z.string() }, ({ message }) => ({
 // SSE
 const app = express();
 
+// Serve static files from the public directory
+app.use(express.static(path.join(PROJECT_ROOT, "public")));
+
 // to support multiple simultaneous connections we have a lookup object from
 // sessionId to transport
 const transports: { [sessionId: string]: SSEServerTransport } = {};
@@ -85,7 +91,7 @@ app.get("/test", async (_: Request, res: Response) => {
 });
 
 app.get("/", async (_: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(PROJECT_ROOT, "dist", "index.html"));
 });
 
 app.post("/messages", async (req: Request, res: Response) => {
